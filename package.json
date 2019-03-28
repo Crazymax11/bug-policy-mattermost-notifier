@@ -1,5 +1,5 @@
 {
-  "name": "jira-test",
+  "name": "bug-policy-mattermost-notifier",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
