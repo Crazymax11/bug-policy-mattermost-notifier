@@ -1,0 +1,7 @@
+node_modules
+static
+config.js
+.gitignore
+.git
+README.md
+config.sample.js

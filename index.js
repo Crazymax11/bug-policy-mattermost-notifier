@@ -1,12 +1,19 @@
 var JiraApi = require('jira-client');
 const { compareAsc, distanceInWordsToNow, addDays, isBefore } = require('date-fns')
 const sendMessageToMattermost = require('./sendMessageToMattermost')
-const config = require('./config.js');
+
+let config ;
+try {
+  config = require('./config.js') 
+} catch(err) {
+  console.error('НЕ СМОГ СЧИТАТЬ КОНФИГ')
+  config = {}
+}
 
 const jiraHost = process.env.JIRA_HOST || config.jiraHost;
 const jiraUsername = process.env.JIRA_USERNAME || config.jiraUsername;
 const jiraPassword = process.env.JIRA_PASSWORD || config.jiraPassword;
-const jiraProjects = process.env.JIRA_PROJECTS || config.jiraProjects;
+const jiraProjects = process.env.JIRA_PROJECTS ? process.env.JIRA_PROJECTS.split(',') : config.jiraProjects;
 const mattermostWebhookPath = process.env.MATTERMOST_WEBHOOK_PATH || config.mattermostWebhookPath;
 const mattermostChannel = process.env.MATTERMOST_CHANNEL || config.mattermostChannel;
 
