@@ -1,15 +1,14 @@
 var JiraApi = require('jira-client');
 const { compareAsc, distanceInWordsToNow, addDays, isBefore } = require('date-fns')
 const sendMessageToMattermost = require('./sendMessageToMattermost')
-const {
-  jiraHost,
-  jiraUsername,
-  jiraPassword,
-  jiraProject,
-  mattermostWebhookPath,
-  mattermostChannel,
-  mattermostHost
-} = require('./config.js');
+const config = require('./config.js');
+
+const jiraHost = process.env.JIRA_HOST || config.jiraHost;
+const jiraUsername = process.env.JIRA_USERNAME || config.jiraUsername;
+const jiraPassword = process.env.JIRA_PASSWORD || config.jiraPassword;
+const jiraProjects = process.env.JIRA_PROJECTS || config.jiraProjects;
+const mattermostWebhookPath = process.env.MATTERMOST_WEBHOOK_PATH || config.mattermostWebhookPath;
+const mattermostChannel = process.env.MATTERMOST_CHANNEL || config.mattermostChannel;
 
 // Initialize
 var jira = new JiraApi({
@@ -29,7 +28,7 @@ const priorityToTimeMapping = {
   Blocker: 0
 }
 
-jira.searchJira(`issuetype = Bug AND createdDate > 2019-03-10 AND status != Завершена AND project = "${jiraProject}"`)
+jira.searchJira(`issuetype = Bug AND createdDate > 2019-03-10 AND resolution = Unresolved AND project in (${jiraProjects.join(',')})`)
   .then(function(result) {
     const arr = result.issues.map(issue => {
       let lastDateToClose = addDays(new Date(issue.fields.created), priorityToTimeMapping[issue.fields.priority.name])
@@ -50,7 +49,6 @@ jira.searchJira(`issuetype = Bug AND createdDate > 2019-03-10 AND status != За
       text: message,
       username: 'Bug Policy Reporter',
       icon_url: 'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/240/apple/198/police-officer_1f46e.png',
-      host: mattermostHost,
       webhookPath: mattermostWebhookPath,
       channel: mattermostChannel
     })
