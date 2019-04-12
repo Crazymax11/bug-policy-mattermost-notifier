@@ -31,7 +31,7 @@ var jira = new JiraApi({
 const priorityToTimeMapping = {
   Minor: 28,
   Major: 14,
-  Critical: 2,
+  Critical: 1,
   Blocker: 0
 }
 
