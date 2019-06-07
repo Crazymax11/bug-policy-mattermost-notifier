@@ -14,11 +14,11 @@
     * `jiraHost` - домен твоей jira
     * `jiraUsername` - юзернейм пользователя, под которым нотифаер будет логинится
     * `jiraPassword` - пароль пользователя, под которым нотифаер будет логинится
-    * `jiraProjects` - проекты, для которых нужно искать баги. Используется в JQL запросе в параметре `project`
+    * `jiraQuery` - запрос в jira за вашими багами
     * `mattermostWebhookPath` - url mattermost webhook, можно узнать в интерфейсе маттермост
     * `mattermostChannel` - канал, в который нужно писать сообщение
 * используй `npm start` и получай отчёт!
 
 ### Пример запуска в докере
 
-`docker run -e JIRA_HOST=jira.rn -e JIRA_USERNAME=user -e JIRA_PASSWORD=pass -e JIRA_PROJECTS="project1, 'project with spaces'"-e MATTERMOST_WEBHOOK_PATH="https://domain.com/hooks/hash" bug-policy-retport:latest`
+`docker run -e JIRA_HOST=jira.rn -e JIRA_USERNAME=user -e JIRA_PASSWORD=pass -e JIRA_QUERY="issuetype = Bug AND createdDate > 2019-03-10 AND resolution = Unresolved AND project in (N1MONEY)"-e MATTERMOST_WEBHOOK_PATH="https://domain.com/hooks/hash" bug-policy-retport:latest`

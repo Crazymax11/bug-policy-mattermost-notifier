@@ -13,7 +13,8 @@ try {
 const jiraHost = process.env.JIRA_HOST || config.jiraHost;
 const jiraUsername = process.env.JIRA_USERNAME || config.jiraUsername;
 const jiraPassword = process.env.JIRA_PASSWORD || config.jiraPassword;
-const jiraProjects = process.env.JIRA_PROJECTS ? process.env.JIRA_PROJECTS.split(',') : config.jiraProjects;
+
+const jiraQuery = process.env.JIRA_QUERY || config.jiraQuery;
 const mattermostWebhookPath = process.env.MATTERMOST_WEBHOOK_PATH || config.mattermostWebhookPath;
 const mattermostChannel = process.env.MATTERMOST_CHANNEL || config.mattermostChannel;
 
@@ -29,13 +30,14 @@ var jira = new JiraApi({
 
 /** маппинг приоритет бага => время для решения */
 const priorityToTimeMapping = {
+  Trivial: 90,
   Minor: 28,
   Major: 14,
   Critical: 1,
   Blocker: 0
 }
 
-jira.searchJira(`issuetype = Bug AND createdDate > 2019-03-10 AND resolution = Unresolved AND project in (${jiraProjects.join(',')})`)
+jira.searchJira(jiraQuery)
   .then(function(result) {
     const arr = result.issues.map(issue => {
       let lastDateToClose = addDays(new Date(issue.fields.created), priorityToTimeMapping[issue.fields.priority.name])
@@ -51,7 +53,6 @@ jira.searchJira(`issuetype = Bug AND createdDate > 2019-03-10 AND resolution = U
   })
   .then((issues) => {
     let message = ['## :policeman: BUG POLICY REPORT :policeman:', ...issues.map(formatIssue)].join('\n')
-    
     return sendMessageToMattermost({
       text: message,
       username: 'Bug Policy Reporter',
@@ -59,7 +60,6 @@ jira.searchJira(`issuetype = Bug AND createdDate > 2019-03-10 AND resolution = U
       webhookPath: mattermostWebhookPath,
       channel: mattermostChannel
     })
-    
   })
   .then(()=> console.log('success'))
   .catch(function(err) {
@@ -68,6 +68,7 @@ jira.searchJira(`issuetype = Bug AND createdDate > 2019-03-10 AND resolution = U
 
 /** маппинг приоритет бага => emoji */
 const priorityToEmojiMapping = {
+  Trivial: ':turtle:',
   Minor: ':kick_scooter:',
   Major: ':car:',
   Critical: ':fire:',
