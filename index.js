@@ -1,6 +1,8 @@
 var JiraApi = require('jira-client');
 const { compareAsc, distanceInWordsToNow, addDays, isBefore } = require('date-fns')
 const sendMessageToMattermost = require('./sendMessageToMattermost')
+var ruLocale = require('date-fns/locale/ru')
+
 
 let config ;
 try {
@@ -56,7 +58,7 @@ jira.searchJira(jiraQuery)
     `
 ## :policeman: BUG POLICY REPORT :policeman:
 
-|priority|title|estimation|
+|Приоритет|Описание|Время|
 |---|---|---|`
     let message = [header, ...issues.map(formatIssue)].join('\n')
     return sendMessageToMattermost({
@@ -85,5 +87,5 @@ function formatIssue({lastDateToClose, priority, link, title}) {
   const today = new Date();
   const statusMessage = isBefore(today, lastDateToClose) ?  ':eggplant: у нас ещё есть': ':fire: мы опоздали на';
  
-  return `|${emoji}|[${title}](${link})|${statusMessage} ${distanceInWordsToNow(lastDateToClose)}|`;
+  return `|${emoji}|[${title}](${link})|${statusMessage} ${distanceInWordsToNow(lastDateToClose, {locale: ruLocale})}|`;
 }
