@@ -42,8 +42,8 @@ jira.searchJira(jiraQuery)
     const arr = result.issues.map(issue => {
       let lastDateToClose = addDays(new Date(issue.fields.created), priorityToTimeMapping[issue.fields.priority.name])
       return {
-        key: issue.key,
         link: `http://jira.rn/browse/${issue.key}`,
+        title: issue.fields.summary,
         priority: issue.fields.priority.name,
         lastDateToClose: lastDateToClose
       }
@@ -52,7 +52,13 @@ jira.searchJira(jiraQuery)
     return arr;
   })
   .then((issues) => {
-    let message = ['## :policeman: BUG POLICY REPORT :policeman:', ...issues.map(formatIssue)].join('\n')
+    const header = 
+    `
+## :policeman: BUG POLICY REPORT :policeman:
+
+|priority|title|estimation|
+|---|---|---|`
+    let message = [header, ...issues.map(formatIssue)].join('\n')
     return sendMessageToMattermost({
       text: message,
       username: 'Bug Policy Reporter',
@@ -74,9 +80,10 @@ const priorityToEmojiMapping = {
   Critical: ':fire:',
   Blocker: ':rocket:'
 }
-function formatIssue({lastDateToClose, priority, link, key}) {
+function formatIssue({lastDateToClose, priority, link, title}) {
   const emoji = priorityToEmojiMapping[priority];
   const today = new Date();
-  const statusMessage = isBefore(today, lastDateToClose) ?  'у нас ещё есть': 'мы опоздали на';
-  return `${emoji} [${key}](${link}) ${statusMessage} ${distanceInWordsToNow(lastDateToClose)} ${emoji}`;
+  const statusMessage = isBefore(today, lastDateToClose) ?  ':eggplant: у нас ещё есть': ':fire: мы опоздали на';
+ 
+  return `|${emoji}|[${title}](${link})|${statusMessage} ${distanceInWordsToNow(lastDateToClose)}|`;
 }
