@@ -42,13 +42,9 @@ const priorityToTimeMapping = {
 jira.searchJira(jiraQuery)
   .then(function(result) {
     const arr = result.issues.map(issue => {
-      let lastDateToClose = addDays(new Date(issue.fields.created), priorityToTimeMapping[issue.fields.priority.name])
-      return {
-        link: `http://jira.rn/browse/${issue.key}`,
-        title: issue.fields.summary,
-        priority: issue.fields.priority.name,
-        lastDateToClose: lastDateToClose
-      }
+      const lastDateToClose = addDays(new Date(issue.fields.created), priorityToTimeMapping[issue.fields.priority.name])
+      issue.lastDateToClose = lastDateToClose;
+      return issue;
     })
     arr.sort((i1, i2) => compareAsc(i1.lastDateToClose,i2.lastDateToClose))
     return arr;
@@ -61,6 +57,7 @@ jira.searchJira(jiraQuery)
 |Приоритет|Описание|Время|
 |---|---|---|`
     let message = [header, ...issues.map(formatIssue)].join('\n')
+
     return sendMessageToMattermost({
       text: message,
       username: 'Bug Policy Reporter',
@@ -74,18 +71,18 @@ jira.searchJira(jiraQuery)
     console.error(err);
   });
 
-/** маппинг приоритет бага => emoji */
-const priorityToEmojiMapping = {
-  Trivial: ':turtle:',
-  Minor: ':kick_scooter:',
-  Major: ':car:',
-  Critical: ':fire:',
-  Blocker: ':rocket:'
-}
-function formatIssue({lastDateToClose, priority, link, title}) {
-  const emoji = priorityToEmojiMapping[priority];
+function formatIssue(issue) {
+  
+  const link = `http://jira.rn/browse/${issue.key}`;
+  const jiraID= issue.key;
+  const title= issue.fields.summary;
+  const lastDateToClose = issue.lastDateToClose;
+  const priorityUrl= issue.fields.priority.iconUrl;
+  const priorityName = issue.fields.priority.name
+
+
   const today = new Date();
   const statusMessage = isBefore(today, lastDateToClose) ?  ':eggplant: у нас ещё есть': ':fire: мы опоздали на';
  
-  return `|${emoji}|[${title}](${link})|${statusMessage} ${distanceInWordsToNow(lastDateToClose, {locale: ruLocale})}|`;
+  return `|![](${priorityUrl}) ${priorityName}|[${jiraID} ${title}](${link})|${statusMessage} ${distanceInWordsToNow(lastDateToClose, {locale: ruLocale})}|`;
 }
